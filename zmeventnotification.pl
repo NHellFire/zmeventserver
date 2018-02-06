@@ -84,7 +84,7 @@ my $useFCM = 1;               # set this to 1 to use FCM for messaging (keep thi
 # change this to a directory and file of your choosing. 
 # This server will create the file if it does not exist
 
-use constant PUSH_TOKEN_FILE=>'/etc/private/tokens.txt'; # MAKE SURE THIS DIRECTORY HAS WWW-DATA PERMISSIONS
+use constant PUSH_TOKEN_FILE=>'/etc/zm/tokens.txt'; # MAKE SURE THIS DIRECTORY HAS WWW-DATA PERMISSIONS
 
 my $printDebugToConsole = 0; # set this to OFF unless you are debugging. If 1, make sure its NOT running via zmdc
 my %ssl_push_opts = ();
