@@ -73,6 +73,11 @@ my $noAuth = 0;                                              # make 1 to NOT che
 use constant SSL_CERT_FILE=>'/etc/apache2/ssl/zoneminder.crt';      # Change these to your certs/keys
 use constant SSL_KEY_FILE=>'/etc/apache2/ssl/zoneminder.key';
 
+# Use pwauth (for system auth)
+use constant PWAUTH_ENABLED=>1; # Set to 0 to use zoneminder auth
+use constant PWAUTH_BINARY=>'/usr/sbin/pwauth'; # Path to pwauth binary
+use constant PWAUTH_GROUP=>'sudo'; # Group user must be a member of
+
 # if you only want to enable websockets make both of these 0
 my $useFCM = 1;               # set this to 1 to use FCM for messaging (keep this to 1, really)
 # PUSH_TOKEN_FILE is needed for pushProxy mode as well as direct APNS mode
@@ -347,6 +352,7 @@ sub validateZM
     return 1 if $noAuth;
     my ($u,$p) = @_;
     return 0 if ( $u eq "" || $p eq "");
+    return validatepwauth($u, $p) if PWAUTH_ENABLED;
     my $sql = 'select Password from Users where Username=?';
     my $sth = $dbh->prepare_cached($sql)
      or Fatal( "Can't prepare '$sql': ".$dbh->errstr() );
@@ -364,6 +370,38 @@ sub validateZM
         return 0;
     }
 
+}
+
+# This function attempts system authentication
+# using pwauth
+
+sub validatepwauth {
+    my ($_u,$p) = @_;
+
+    return 0 if ( $_u eq "" || $p eq "");
+
+    my ($u) = $_u =~ /^([[:alnum:]]+)$/;
+    if ( $u eq "" ) {
+        Warning("Badly formatted username $_u");
+        return 0;
+    }
+    Info("Attempting pwauth authentication for $u");
+
+    my $pwauth = open(PWAUTH, "| " . PWAUTH_BINARY) or Fatal("Can't execute pwauth");
+    print PWAUTH "$u\n";
+    print PWAUTH "$p\n";
+    close(PWAUTH);
+
+    my $status = $? >> 8;
+
+    if ( $status eq 0 ) {
+        my @groups = split(/ /, `id -Gn $u`);
+
+        foreach my $g (@groups) {
+            return 1 if ( PWAUTH_GROUP eq $g );
+        }
+    }
+    return 0;
 }
 
 # deletes a token - invoked if FCM responds with an incorrect token error
