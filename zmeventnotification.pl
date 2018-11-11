@@ -78,6 +78,7 @@ use constant {
     DEFAULT_AUTH_TIMEOUT                            => 20,
     DEFAULT_PWAUTH_ENABLE                           => 0,
     DEFAULT_PWAUTH_GROUP                            => 'sudo',
+    DEFAULT_PWAUTH_BINARY                           => '/usr/sbin/pwauth',
     DEFAULT_FCM_ENABLE                              => 1,
     DEFAULT_MQTT_ENABLE                             => 0,
     DEFAULT_MQTT_SERVER                             => '127.0.0.1',
